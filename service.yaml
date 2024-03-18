@@ -1,0 +1,13 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+  name: langchain
+spec:
+  template:
+    spec:
+      containers:
+      - image: REGION-docker.pkg.dev/PROJECT/containers/langchain-next-js:latest
+        ports:
+          - containerPort: 3000
+      - image: chromadb/chroma:latest

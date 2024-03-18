@@ -1,0 +1,36 @@
+steps:
+
+  - name: "gcr.io/cloud-builders/docker"
+    dir: "apps/agent-coordinator"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        branch_name=$BRANCH_NAME
+        branch=${branch_name//\//-}
+        docker build -t ${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-coordinator:latest \
+                     -t ${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-coordinator:$SHORT_SHA \
+                     -t ${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-coordinator:$branch \
+                     --network=cloudbuild \
+                     --build-arg ARTIFACT_REGISTRY_PACKAGES_URL=${_ARTIFACT_REGISTRY_PACKAGES_URL} \
+                     .
+
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: "apps/agent-coordinator"
+    entrypoint: docker
+    args: [
+      "push",
+      "-a",
+      "${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-coordinator",
+    ]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    dir: "apps/agent-coordinator"
+    entrypoint: gcloud
+    args: [
+      "run",
+      "deploy",
+      "agent-coordinator",
+      "--image=${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-coordinator:${SHORT_SHA}",
+      "--region=${_REGION}"
+    ]

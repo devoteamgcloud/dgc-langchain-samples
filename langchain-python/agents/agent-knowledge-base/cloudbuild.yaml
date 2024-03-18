@@ -1,0 +1,36 @@
+steps:
+
+  - name: "gcr.io/cloud-builders/docker"
+    dir: "apps/agent-knowledge-base"
+    entrypoint: bash
+    args:
+      - "-c"
+      - |
+        branch_name=$BRANCH_NAME
+        branch=${branch_name//\//-}
+        docker build -t ${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-knowledge-base:latest \
+                     -t ${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-knowledge-base:$SHORT_SHA \
+                     -t ${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-knowledge-base:$branch \
+                     --network=cloudbuild \
+                     --build-arg ARTIFACT_REGISTRY_PACKAGES_URL=${_ARTIFACT_REGISTRY_PACKAGES_URL} \
+                     .
+
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: "apps/agent-knowledge-base"
+    entrypoint: docker
+    args: [
+      "push",
+      "-a",
+      "${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-knowledge-base",
+    ]
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    dir: "apps/agent-knowledge-base"
+    entrypoint: gcloud
+    args: [
+      "run",
+      "deploy",
+      "agent-knowledge-base",
+      "--image=${_ARTIFACT_REGISTRY_CONTAINERS_URL}/agent-knowledge-base:${SHORT_SHA}",
+      "--region=${_REGION}"
+    ]

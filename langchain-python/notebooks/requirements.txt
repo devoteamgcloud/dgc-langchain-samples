@@ -1,0 +1,7 @@
+langchain==0.0.340
+google-cloud-storage==2.13.0
+google-api-core==2.14.0
+google-cloud-aiplatform==1.36.4
+chromadb==0.4.18
+langchainhub==0.1.14
+unstructured[all-docs]
